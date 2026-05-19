@@ -35,12 +35,15 @@ function renderizarCategoriasEnFormulario() {
     const contenedor = document.getElementById('categorias-pills-container');
     contenedor.innerHTML = "";
     categoriasGlobales.forEach(cat => {
-        const btn = document.createElement('button'); btn.type = "button";
+        const btn = document.createElement('button');
+        btn.type = "button";
         btn.className = `pill-button ${tempCategoriasSeleccionadas.includes(cat) ? 'active' : ''}`;
         btn.textContent = cat;
         btn.onclick = () => {
-            if(tempCategoriasSeleccionadas.includes(cat)) { tempCategoriasSeleccionadas = tempCategoriasSeleccionadas.filter(c => c !== cat); btn.classList.remove('active'); } 
-            else { tempCategoriasSeleccionadas.push(cat); btn.classList.add('active'); }
+            if(tempCategoriasSeleccionadas.includes(cat)) {
+                tempCategoriasSeleccionadas = tempCategoriasSeleccionadas.filter(c => c !== cat);
+                btn.classList.remove('active');
+            } else { tempCategoriasSeleccionadas.push(cat); btn.classList.add('active'); }
         };
         contenedor.appendChild(btn);
     });
@@ -49,9 +52,14 @@ function renderizarCategoriasEnFormulario() {
 function crearNuevaCategoriaGlobal() {
     const valor = document.getElementById('nueva-categoria-input').value.trim();
     if(!valor) return;
-    if(!categoriasGlobales.includes(valor)) { categoriasGlobales.push(valor); localStorage.setItem('ensamble_categorias', JSON.stringify(categoriasGlobales)); actualizarFiltrosInstrumentos(); }
+    if(!categoriasGlobales.includes(valor)) {
+        categoriasGlobales.push(valor);
+        localStorage.setItem('ensamble_categorias', JSON.stringify(categoriasGlobales));
+        actualizarFiltrosInstrumentos();
+    }
     if(!tempCategoriasSeleccionadas.includes(valor)) tempCategoriasSeleccionadas.push(valor);
-    document.getElementById('nueva-categoria-input').value = ""; renderizarCategoriasEnFormulario();
+    document.getElementById('nueva-categoria-input').value = "";
+    renderizarCategoriasEnFormulario();
 }
 
 function guardarMiembro() {
@@ -62,14 +70,21 @@ function guardarMiembro() {
         const m = miembros.find(x => x.id === idMiembroEditando);
         m.nombre = nombre; m.foto = document.getElementById('m-foto').value.trim();
         m.instrumentos = tempCategoriasSeleccionadas.length > 0 ? tempCategoriasSeleccionadas : ['Varios'];
-        canciones.forEach(c => { c.asignaciones.forEach(a => { if(a.miembroId === m.id) a.nombre = m.nombre; }); });
+        canciones.forEach(c => {
+            c.asignaciones.forEach(a => { if(a.miembroId === m.id) a.nombre = m.nombre; });
+        });
         localStorage.setItem('ensamble_canciones', JSON.stringify(canciones));
     } else {
-        miembros.push({ id: Date.now(), nombre: nombre, instrumentos: tempCategoriasSeleccionadas.length > 0 ? tempCategoriasSeleccionadas : ['Varios'], foto: document.getElementById('m-foto').value.trim() || '' });
+        miembros.push({
+            id: Date.now(), nombre: nombre, 
+            instrumentos: tempCategoriasSeleccionadas.length > 0 ? tempCategoriasSeleccionadas : ['Varios'],
+            foto: document.getElementById('m-foto').value.trim() || ''
+        });
     }
 
     localStorage.setItem('ensamble_miembros', JSON.stringify(miembros));
-    cerrarModal('modal-miembro'); aplicarFiltroMiembros();
+    cerrarModal('modal-miembro');
+    aplicarFiltroMiembros();
     
     if(idMiembroEditando && idMiembroVisualizando) verDetalleMiembro(idMiembroVisualizando);
     if(flagCreandoDesdeCancion) { abrirSubModalSeleccion(); flagCreandoDesdeCancion = false; }
@@ -80,34 +95,25 @@ function aplicarFiltroMiembros() {
     const inst = document.getElementById('filter-inst-miembro').value;
     const filtrados = miembros.filter(m => m.nombre.toLowerCase().includes(texto) && (inst === "" || m.instrumentos.includes(inst)));
     
-    const contenedor = document.getElementById('lista-miembros'); contenedor.innerHTML = "";
+    const contenedor = document.getElementById('lista-miembros');
+    contenedor.innerHTML = "";
     if(filtrados.length === 0) return contenedor.innerHTML = '<div class="no-data">No hay integrantes</div>';
 
     filtrados.forEach(m => {
-        // Calcular estadísticas para la vista general
-        let susCanciones = canciones.filter(c => c.asignaciones.some(a => a.miembroId === m.id));
-        let numCanciones = susCanciones.length;
-        let ultimaFechaMs = 0;
-        susCanciones.forEach(c => {
-            if(c.ensayos && c.ensayos.length > 0) {
-                const d = new Date(c.ensayos[c.ensayos.length-1].fecha).getTime();
-                if(d > ultimaFechaMs) ultimaFechaMs = d;
-            }
-        });
-        let textoEnsayo = ultimaFechaMs > 0 ? tiempoDesde(ultimaFechaMs) : 'Sin ensayos';
-
         const div = document.createElement('div'); div.className = 'item-card';
         div.onclick = () => verDetalleMiembro(m.id);
         let avatarHTML = m.foto ? `<div class="item-avatar" style="background-image: url('${m.foto}')"></div>` : `<div class="item-avatar"><span class="material-icons">person</span></div>`;
         let tagsHTML = m.instrumentos.map(t => `<span class="member-tag-small"><span class="material-icons" style="font-size:11px;">music_note</span> ${t}</span>`).join('');
 
-        div.innerHTML = `<div class="item-main">${avatarHTML}<div class="item-details"><span class="item-title">${m.nombre}</span><div>${tagsHTML}</div><span class="item-sub" style="margin-top:2px;">Repertorio: ${numCanciones} • Último: ${textoEnsayo}</span></div></div><span class="material-icons" style="color:#48484a;">chevron_right</span>`;
+        div.innerHTML = `<div class="item-main">${avatarHTML}<div class="item-details"><span class="item-title">${m.nombre}</span><div>${tagsHTML}</div></div></div><span class="material-icons" style="color:#48484a;">chevron_right</span>`;
         contenedor.appendChild(div);
     });
 }
 
 function verDetalleMiembro(id) {
-    idMiembroVisualizando = id; const m = miembros.find(x => x.id === id); if(!m) return;
+    idMiembroVisualizando = id;
+    const m = miembros.find(x => x.id === id);
+    if(!m) return;
 
     let susCanciones = canciones.filter(c => c.asignaciones.some(a => a.miembroId === id));
     susCanciones.sort((a,b) => {
@@ -118,9 +124,8 @@ function verDetalleMiembro(id) {
 
     let listaCancionesHTML = susCanciones.map(c => {
         let textClass = c.estado === 'Lista' ? 'text-lista' : (c.estado === 'Por Ensayar' ? 'text-ensayar' : 'text-sin');
-        let fechaText = c.ensayos && c.ensayos.length > 0 ? tiempoDesde(c.ensayos[c.ensayos.length-1].fecha) : 'Sin ensayos';
-        
-        return `<div class="item-card" onclick="irACancionDesdeMiembro(${c.id})" style="border:1px solid #1c1c1e; border-radius:8px; padding:10px; margin-bottom:8px;">
+        let fechaText = c.ensayos && c.ensayos.length > 0 ? new Date(c.ensayos[c.ensayos.length-1].fecha).toLocaleDateString() : 'Nunca ensayado';
+        return `<div class="item-card" onclick="verDetalleCancion(${c.id})" style="border:1px solid #1c1c1e; border-radius:8px; padding:10px; margin-bottom:8px;">
             <div class="item-details"><span class="item-title">${c.titulo}</span><span class="item-sub ${textClass}">Último: ${fechaText}</span></div><span class="material-icons" style="color:#48484a;">arrow_forward</span>
         </div>`;
     }).join('') || '<p style="color:#8e8e93; font-size:14px;">Sin canciones asignadas.</p>';
@@ -135,15 +140,10 @@ function verDetalleMiembro(id) {
         if(confirm("¿Eliminar integrante de todas las canciones?")) {
             miembros = miembros.filter(x => x.id !== id);
             canciones.forEach(c => c.asignaciones = c.asignaciones.filter(a => a.miembroId !== id));
-            localStorage.setItem('ensamble_miembros', JSON.stringify(miembros)); localStorage.setItem('ensamble_canciones', JSON.stringify(canciones));
+            localStorage.setItem('ensamble_miembros', JSON.stringify(miembros));
+            localStorage.setItem('ensamble_canciones', JSON.stringify(canciones));
             aplicarFiltroMiembros(); aplicarFiltrosCanciones(); cambiarPestaña('miembros', 1);
         }
     };
     cambiarPestaña('detalle-miembro', null);
-}
-
-// Ayuda a no perderse
-function irACancionDesdeMiembro(idCancion) {
-    origenNavegacionCancion = 'miembro';
-    verDetalleCancion(idCancion);
 }
